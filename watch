@@ -1,0 +1,12 @@
+#!/bin/bash
+
+deploy(){
+  git commit -a -m $(date "+%Y-%m-%d_%H:%M") \
+    && git push origin gh-pages \
+    && osascript -e 'display notification "Deploy succeeded." with title "Success"' \
+    || osascript -e 'display notification "Deploy failed." with title "Failure"'
+}
+
+fswatch -o elm.js | while read _ ; do
+  deploy
+done
