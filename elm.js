@@ -1934,10 +1934,10 @@ Elm.Main.make = function (_elm) {
                            ,_0: $Basics.toFloat(_v0._0) - $Basics.toFloat(_v1._0) / 2
                            ,_1: $Basics.toFloat(_v1._1) / 2 - $Basics.toFloat(_v0._1)};}
                  _U.badCase($moduleName,
-                 "on line 50, column 6 to 58");
+                 "on line 67, column 6 to 58");
               }();}
          _U.badCase($moduleName,
-         "on line 50, column 6 to 58");
+         "on line 67, column 6 to 58");
       }();
    }),
    $Mouse.position,
@@ -1953,7 +1953,7 @@ Elm.Main.make = function (_elm) {
    timeDelta,
    relativeMouse));
    var view = F2(function (_v8,
-   ball) {
+   blob) {
       return function () {
          switch (_v8.ctor)
          {case "_Tuple2":
@@ -1964,43 +1964,84 @@ Elm.Main.make = function (_elm) {
               _v8._0,
               _v8._1,
               _L.fromArray([$Graphics$Collage.move({ctor: "_Tuple2"
-                                                   ,_0: ball.x
-                                                   ,_1: ball.y})($Graphics$Collage.filled($Color.red)($Graphics$Collage.circle(5)))])));}
+                                                   ,_0: blob.x
+                                                   ,_1: blob.y})($Graphics$Collage.filled($Color.red)($Graphics$Collage.circle(blob.size)))])));}
          _U.badCase($moduleName,
-         "between lines 28 and 33");
+         "between lines 45 and 50");
       }();
    });
-   var update = F2(function (_v12,
-   ball) {
+   var applyVelocity = F2(function (timeDelta,
+   blob) {
+      return _U.replace([["x"
+                         ,blob.x + timeDelta * blob.xv]
+                        ,["y"
+                         ,blob.y + timeDelta * blob.yv]],
+      blob);
+   });
+   var applyMouseForce = F2(function (_v12,
+   blob) {
       return function () {
          switch (_v12.ctor)
          {case "_Tuple2":
-            switch (_v12._1.ctor)
-              {case "_Tuple2":
-                 return _U.replace([["x"
-                                    ,_v12._1._0]
-                                   ,["y",_v12._1._1]],
-                   ball);}
-              break;}
+            return _U.replace([["xv"
+                               ,blob.xv + (_v12._0 - blob.x)]
+                              ,["yv"
+                               ,blob.yv + (_v12._1 - blob.y)]],
+              blob);}
          _U.badCase($moduleName,
-         "between lines 19 and 22");
+         "between lines 29 and 32");
       }();
    });
-   var Ball = F2(function (a,b) {
-      return {_: {},x: a,y: b};
+   var update = F2(function (_v16,
+   blob) {
+      return function () {
+         switch (_v16.ctor)
+         {case "_Tuple2":
+            switch (_v16._1.ctor)
+              {case "_Tuple2":
+                 return applyVelocity(_v16._0)(applyMouseForce({ctor: "_Tuple2"
+                                                               ,_0: _v16._1._0
+                                                               ,_1: _v16._1._1})(function (blob) {
+                      return _U.replace([["xv",0]
+                                        ,["yv",0]],
+                      blob);
+                   }(blob)));}
+              break;}
+         _U.badCase($moduleName,
+         "between lines 22 and 25");
+      }();
    });
-   var startingBall = A2(Ball,0,0);
+   var Blob = F5(function (a,
+   b,
+   c,
+   d,
+   e) {
+      return {_: {}
+             ,size: c
+             ,x: a
+             ,xv: d
+             ,y: b
+             ,yv: e};
+   });
+   var startingBlob = A5(Blob,
+   0,
+   0,
+   5,
+   0,
+   0);
    var main = A2($Signal.map2,
    view,
    $Window.dimensions)(A3($Signal.foldp,
    update,
-   startingBall,
+   startingBlob,
    input));
    _elm.Main.values = {_op: _op
-                      ,Ball: Ball
+                      ,Blob: Blob
                       ,update: update
+                      ,applyMouseForce: applyMouseForce
+                      ,applyVelocity: applyVelocity
                       ,view: view
-                      ,startingBall: startingBall
+                      ,startingBlob: startingBlob
                       ,main: main
                       ,input: input
                       ,relativeMouse: relativeMouse
