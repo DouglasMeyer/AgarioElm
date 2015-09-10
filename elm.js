@@ -1916,21 +1916,29 @@ Elm.Main.make = function (_elm) {
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $Time = Elm.Time.make(_elm);
+   $Time = Elm.Time.make(_elm),
+   $Window = Elm.Window.make(_elm);
    var timeDelta = A2($Signal.map,
    $Time.inSeconds,
    $Time.fps(40));
-   var view = function (ball) {
-      return A3($Graphics$Element.container,
-      200,
-      200,
-      $Graphics$Element.middle)(A3($Graphics$Collage.collage,
-      200,
-      200,
-      _L.fromArray([$Graphics$Collage.move({ctor: "_Tuple2"
-                                           ,_0: ball.x
-                                           ,_1: ball.y})($Graphics$Collage.filled($Color.red)($Graphics$Collage.circle(5)))])));
-   };
+   var view = F2(function (_v0,
+   ball) {
+      return function () {
+         switch (_v0.ctor)
+         {case "_Tuple2":
+            return A3($Graphics$Element.container,
+              _v0._0,
+              _v0._1,
+              $Graphics$Element.middle)(A3($Graphics$Collage.collage,
+              _v0._0,
+              _v0._1,
+              _L.fromArray([$Graphics$Collage.move({ctor: "_Tuple2"
+                                                   ,_0: ball.x
+                                                   ,_1: ball.y})($Graphics$Collage.filled($Color.red)($Graphics$Collage.circle(5)))])));}
+         _U.badCase($moduleName,
+         "between lines 26 and 31");
+      }();
+   });
    var update = F2(function (timeDelta,
    ball) {
       return _U.replace([["x"
@@ -1941,20 +1949,18 @@ Elm.Main.make = function (_elm) {
       return {_: {},x: a,y: b};
    });
    var startingBall = A2(Ball,0,0);
-   var gameState = A3($Signal.foldp,
+   var main = A2($Signal.map2,
+   view,
+   $Window.dimensions)(A3($Signal.foldp,
    update,
    startingBall,
-   timeDelta);
-   var main = A2($Signal.map,
-   view,
-   gameState);
+   timeDelta));
    _elm.Main.values = {_op: _op
                       ,Ball: Ball
                       ,update: update
                       ,view: view
                       ,startingBall: startingBall
                       ,main: main
-                      ,gameState: gameState
                       ,timeDelta: timeDelta};
    return _elm.Main.values;
 };
@@ -6417,6 +6423,75 @@ Elm.Native.Utils.make = function(localRuntime) {
 	};
 };
 
+Elm.Native = Elm.Native || {};
+Elm.Native.Window = {};
+Elm.Native.Window.make = function(localRuntime) {
+
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Window = localRuntime.Native.Window || {};
+	if (localRuntime.Native.Window.values)
+	{
+		return localRuntime.Native.Window.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+	var Tuple2 = Elm.Native.Utils.make(localRuntime).Tuple2;
+
+
+	function getWidth()
+	{
+		return localRuntime.node.clientWidth;
+	}
+
+
+	function getHeight()
+	{
+		if (localRuntime.isFullscreen())
+		{
+			return window.innerHeight;
+		}
+		return localRuntime.node.clientHeight;
+	}
+
+
+	var dimensions = NS.input('Window.dimensions', Tuple2(getWidth(), getHeight()));
+
+
+	function resizeIfNeeded()
+	{
+		// Do not trigger event if the dimensions have not changed.
+		// This should be most of the time.
+		var w = getWidth();
+		var h = getHeight();
+		if (dimensions.value._0 === w && dimensions.value._1 === h)
+		{
+			return;
+		}
+
+		setTimeout(function () {
+			// Check again to see if the dimensions have changed.
+			// It is conceivable that the dimensions have changed
+			// again while some other event was being processed.
+			var w = getWidth();
+			var h = getHeight();
+			if (dimensions.value._0 === w && dimensions.value._1 === h)
+			{
+				return;
+			}
+			localRuntime.notify(dimensions.id, Tuple2(w,h));
+		}, 0);
+	}
+
+
+	localRuntime.addListener([dimensions.id], window, 'resize', resizeIfNeeded);
+
+
+	return localRuntime.Native.Window.values = {
+		dimensions: dimensions,
+		resizeIfNeeded: resizeIfNeeded
+	};
+};
+
 Elm.Result = Elm.Result || {};
 Elm.Result.make = function (_elm) {
    "use strict";
@@ -7259,4 +7334,31 @@ Elm.Transform2D.make = function (_elm) {
                              ,scaleX: scaleX
                              ,scaleY: scaleY};
    return _elm.Transform2D.values;
+};
+Elm.Window = Elm.Window || {};
+Elm.Window.make = function (_elm) {
+   "use strict";
+   _elm.Window = _elm.Window || {};
+   if (_elm.Window.values)
+   return _elm.Window.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Window",
+   $Basics = Elm.Basics.make(_elm),
+   $Native$Window = Elm.Native.Window.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var dimensions = $Native$Window.dimensions;
+   var width = A2($Signal.map,
+   $Basics.fst,
+   dimensions);
+   var height = A2($Signal.map,
+   $Basics.snd,
+   dimensions);
+   _elm.Window.values = {_op: _op
+                        ,dimensions: dimensions
+                        ,width: width
+                        ,height: height};
+   return _elm.Window.values;
 };

@@ -2,6 +2,7 @@ import Time exposing (Time, inSeconds, fps)
 import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
 import Color exposing (red)
+import Window
 
 -- Model
 
@@ -20,10 +21,10 @@ update timeDelta ball =
 
 -- View
 
-view : Ball -> Element
-view ball =
-  container 200 200 middle <|
-  collage 200 200 [
+view : (Int, Int) -> Ball -> Element
+view (width,height) ball =
+  container width height middle <|
+  collage width height [
     circle 5
       |> filled red
       |> move (ball.x, ball.y)
@@ -35,10 +36,7 @@ startingBall = Ball 0 0
 
 main : Signal Element
 main = 
-  Signal.map view gameState
-
-gameState : Signal Ball
-gameState =
+  Signal.map2 view Window.dimensions <|
   Signal.foldp update startingBall timeDelta
 
 timeDelta : Signal Time
