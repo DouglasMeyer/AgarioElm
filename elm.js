@@ -1914,6 +1914,7 @@ Elm.Main.make = function (_elm) {
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Mouse = Elm.Mouse.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $Time = Elm.Time.make(_elm),
@@ -1921,29 +1922,69 @@ Elm.Main.make = function (_elm) {
    var timeDelta = A2($Signal.map,
    $Time.inSeconds,
    $Time.fps(40));
-   var view = F2(function (_v0,
+   var relativeMouse = A3($Signal.map2,
+   F2(function (_v0,_v1) {
+      return function () {
+         switch (_v1.ctor)
+         {case "_Tuple2":
+            return function () {
+                 switch (_v0.ctor)
+                 {case "_Tuple2":
+                    return {ctor: "_Tuple2"
+                           ,_0: $Basics.toFloat(_v0._0) - $Basics.toFloat(_v1._0) / 2
+                           ,_1: $Basics.toFloat(_v1._1) / 2 - $Basics.toFloat(_v0._1)};}
+                 _U.badCase($moduleName,
+                 "on line 50, column 6 to 58");
+              }();}
+         _U.badCase($moduleName,
+         "on line 50, column 6 to 58");
+      }();
+   }),
+   $Mouse.position,
+   $Window.dimensions);
+   var input = A2($Signal.sampleOn,
+   timeDelta,
+   A3($Signal.map2,
+   F2(function (v0,v1) {
+      return {ctor: "_Tuple2"
+             ,_0: v0
+             ,_1: v1};
+   }),
+   timeDelta,
+   relativeMouse));
+   var view = F2(function (_v8,
    ball) {
       return function () {
-         switch (_v0.ctor)
+         switch (_v8.ctor)
          {case "_Tuple2":
             return A3($Graphics$Element.container,
-              _v0._0,
-              _v0._1,
+              _v8._0,
+              _v8._1,
               $Graphics$Element.middle)(A3($Graphics$Collage.collage,
-              _v0._0,
-              _v0._1,
+              _v8._0,
+              _v8._1,
               _L.fromArray([$Graphics$Collage.move({ctor: "_Tuple2"
                                                    ,_0: ball.x
                                                    ,_1: ball.y})($Graphics$Collage.filled($Color.red)($Graphics$Collage.circle(5)))])));}
          _U.badCase($moduleName,
-         "between lines 26 and 31");
+         "between lines 28 and 33");
       }();
    });
-   var update = F2(function (timeDelta,
+   var update = F2(function (_v12,
    ball) {
-      return _U.replace([["x"
-                         ,ball.x + timeDelta * 10]],
-      ball);
+      return function () {
+         switch (_v12.ctor)
+         {case "_Tuple2":
+            switch (_v12._1.ctor)
+              {case "_Tuple2":
+                 return _U.replace([["x"
+                                    ,_v12._1._0]
+                                   ,["y",_v12._1._1]],
+                   ball);}
+              break;}
+         _U.badCase($moduleName,
+         "between lines 19 and 22");
+      }();
    });
    var Ball = F2(function (a,b) {
       return {_: {},x: a,y: b};
@@ -1954,13 +1995,15 @@ Elm.Main.make = function (_elm) {
    $Window.dimensions)(A3($Signal.foldp,
    update,
    startingBall,
-   timeDelta));
+   input));
    _elm.Main.values = {_op: _op
                       ,Ball: Ball
                       ,update: update
                       ,view: view
                       ,startingBall: startingBall
                       ,main: main
+                      ,input: input
+                      ,relativeMouse: relativeMouse
                       ,timeDelta: timeDelta};
    return _elm.Main.values;
 };
@@ -2036,6 +2079,37 @@ Elm.Maybe.make = function (_elm) {
                        ,Just: Just
                        ,Nothing: Nothing};
    return _elm.Maybe.values;
+};
+Elm.Mouse = Elm.Mouse || {};
+Elm.Mouse.make = function (_elm) {
+   "use strict";
+   _elm.Mouse = _elm.Mouse || {};
+   if (_elm.Mouse.values)
+   return _elm.Mouse.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Mouse",
+   $Basics = Elm.Basics.make(_elm),
+   $Native$Mouse = Elm.Native.Mouse.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var clicks = $Native$Mouse.clicks;
+   var isDown = $Native$Mouse.isDown;
+   var position = $Native$Mouse.position;
+   var x = A2($Signal.map,
+   $Basics.fst,
+   position);
+   var y = A2($Signal.map,
+   $Basics.snd,
+   position);
+   _elm.Mouse.values = {_op: _op
+                       ,position: position
+                       ,x: x
+                       ,y: y
+                       ,isDown: isDown
+                       ,clicks: clicks};
+   return _elm.Mouse.values;
 };
 Elm.Native.Basics = {};
 Elm.Native.Basics.make = function(localRuntime) {
@@ -3884,6 +3958,50 @@ Elm.Native.List.make = function(localRuntime) {
 	};
 	return localRuntime.Native.List.values = Elm.Native.List.values;
 
+};
+
+Elm.Native = Elm.Native || {};
+Elm.Native.Mouse = {};
+Elm.Native.Mouse.make = function(localRuntime) {
+
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Mouse = localRuntime.Native.Mouse || {};
+	if (localRuntime.Native.Mouse.values)
+	{
+		return localRuntime.Native.Mouse.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+	var position = NS.input('Mouse.position', Utils.Tuple2(0,0));
+
+	var isDown = NS.input('Mouse.isDown', false);
+
+	var clicks = NS.input('Mouse.clicks', Utils.Tuple0);
+
+	var node = localRuntime.isFullscreen()
+		? document
+		: localRuntime.node;
+
+	localRuntime.addListener([clicks.id], node, 'click', function click() {
+		localRuntime.notify(clicks.id, Utils.Tuple0);
+	});
+	localRuntime.addListener([isDown.id], node, 'mousedown', function down() {
+		localRuntime.notify(isDown.id, true);
+	});
+	localRuntime.addListener([isDown.id], node, 'mouseup', function up() {
+		localRuntime.notify(isDown.id, false);
+	});
+	localRuntime.addListener([position.id], node, 'mousemove', function move(e) {
+		localRuntime.notify(position.id, Utils.getXY(e));
+	});
+
+	return localRuntime.Native.Mouse.values = {
+		position: position,
+		isDown: isDown,
+		clicks: clicks
+	};
 };
 
 Elm.Native.Port = {};

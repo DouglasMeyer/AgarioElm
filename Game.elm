@@ -3,6 +3,7 @@ import Graphics.Collage exposing (..)
 import Graphics.Element exposing (..)
 import Color exposing (red)
 import Window
+import Mouse
 
 -- Model
 
@@ -13,10 +14,11 @@ type alias Ball = {
 
 -- Update
 
-update : Float -> Ball -> Ball
-update timeDelta ball =
+update : (Float, (Float,Float)) -> Ball -> Ball
+update (timeDelta, (x,y)) ball =
   { ball |
-    x <- ball.x + timeDelta*10
+    x <- x,
+    y <- y
   }
 
 -- View
@@ -37,7 +39,16 @@ startingBall = Ball 0 0
 main : Signal Element
 main = 
   Signal.map2 view Window.dimensions <|
-  Signal.foldp update startingBall timeDelta
+  Signal.foldp update startingBall input
+
+input : Signal (Time, (Float,Float))
+input = Signal.sampleOn timeDelta (Signal.map2 (,) timeDelta relativeMouse)
+
+relativeMouse : Signal (Float,Float)
+relativeMouse =
+  Signal.map2 (\(x,y) (w,h) ->
+    (toFloat x - toFloat w / 2, toFloat h / 2 - toFloat y)
+  ) Mouse.position Window.dimensions
 
 timeDelta : Signal Time
 timeDelta = Signal.map inSeconds (fps 40)
